@@ -383,8 +383,7 @@ where
                 }
                 Ok(event) => match event {
                     Event::Message(message) => {
-                        
-                        println!("message {:?}", message.data);
+                    
                         
                         // Clone the message data for manipulation
                         let mut data_clone = message.data.clone();
@@ -398,9 +397,13 @@ where
                             // Update data_clone with the modified data
                             data_clone = serde_json::to_string(&data_json).unwrap();
                         }
-                
+                        if data_json.get("id").is_none() {
+                            // Insert 'model' field with a default value if it doesn't exist
+                            data_json.as_object_mut().unwrap().insert("id".to_string(), serde_json::Value::String("0".to_string()));
+                            // Update data_clone with the modified data
+                            data_clone = serde_json::to_string(&data_json).unwrap();
+                        }
                         // Now work with data_clone which includes the 'model' field
-                        println!("modified message {:?}", data_clone);
                 
                         if data_clone == "[DONE]" {
                             break;
