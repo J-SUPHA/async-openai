@@ -383,15 +383,37 @@ where
                 }
                 Ok(event) => match event {
                     Event::Message(message) => {
-                        if message.data == "[DONE]" {
+                        
+                        println!("message {:?}", message.data);
+                        
+                        // Clone the message data for manipulation
+                        let mut data_clone = message.data.clone();
+                
+                        // Check if the 'model' field exists
+                        let mut data_json: serde_json::Value = serde_json::from_str(&data_clone).unwrap_or_else(|_| serde_json::Value::Object(serde_json::Map::new()));
+                
+                        if data_json.get("model").is_none() {
+                            // Insert 'model' field with a default value if it doesn't exist
+                            data_json.as_object_mut().unwrap().insert("model".to_string(), serde_json::Value::String("default-model".to_string()));
+                            // Update data_clone with the modified data
+                            data_clone = serde_json::to_string(&data_json).unwrap();
+                        }
+                
+                        // Now work with data_clone which includes the 'model' field
+                        println!("modified message {:?}", data_clone);
+                
+                        if data_clone == "[DONE]" {
                             break;
                         }
-
-                        let response = match serde_json::from_str::<O>(&message.data) {
-                            Err(e) => Err(map_deserialization_error(e, &message.data.as_bytes())),
+                
+                        let response = match serde_json::from_str::<O>(&data_clone) {
+                            Err(e) => {
+                                println!("error {:?}", e);
+                                Err(map_deserialization_error(e, &data_clone.as_bytes()))
+                            },
                             Ok(output) => Ok(output),
                         };
-
+                
                         if let Err(_e) = tx.send(response) {
                             // rx dropped
                             break;
