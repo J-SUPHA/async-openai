@@ -1,5 +1,5 @@
 use std::pin::Pin;
-
+use chrono;
 use bytes::Bytes;
 use futures::{stream::StreamExt, Stream};
 use reqwest_eventsource::{Event, EventSource, RequestBuilderExt};
@@ -387,9 +387,11 @@ where
                         
                         // Clone the message data for manipulation
                         let mut data_clone = message.data.clone();
+
                 
                         // Check if the 'model' field exists
                         let mut data_json: serde_json::Value = serde_json::from_str(&data_clone).unwrap_or_else(|_| serde_json::Value::Object(serde_json::Map::new()));
+
                 
                         if data_json.get("model").is_none() {
                             // Insert 'model' field with a default value if it doesn't exist
@@ -399,7 +401,7 @@ where
                         }
                         if data_json.get("id").is_none() {
                             // Insert 'model' field with a default value if it doesn't exist
-                            data_json.as_object_mut().unwrap().insert("id".to_string(), serde_json::Value::String("0".to_string()));
+                            data_json.as_object_mut().unwrap().insert("id".to_string(), serde_json::Value::String(chrono::offset::Local::now().to_string()));
                             // Update data_clone with the modified data
                             data_clone = serde_json::to_string(&data_json).unwrap();
                         }
