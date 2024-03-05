@@ -1589,7 +1589,7 @@ pub struct ChatCompletionResponseStreamMessage {
 /// Represents a streamed chunk of a chat completion response returned by model, based on the provided input.
 pub struct CreateChatCompletionStreamResponse {
     /// A unique identifier for the chat completion. Each chunk has the same ID.
-    pub id: String,
+    pub id: Option<String>,
     /// A list of chat completion choices. Can be more than one if `n` is greater than 1.
     pub choices: Vec<ChatCompletionResponseStreamMessage>,
 
