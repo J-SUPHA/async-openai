@@ -12,7 +12,7 @@ use crate::error::OpenAIError;
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 pub struct Model {
     /// The model identifier, which can be referenced in the API endpoints.
-    pub id: String,
+    pub id: Option<String>,
     /// The object type, which is always "model".
     pub object: String,
     /// The Unix timestamp (in seconds) when the model was created.
@@ -201,7 +201,7 @@ pub struct CompletionUsage {
 #[derive(Debug, Deserialize, Clone, PartialEq, Serialize)]
 pub struct CreateCompletionResponse {
     /// A unique identifier for the completion.
-    pub id: String,
+    pub id: Option<String>,
     pub choices: Vec<Choice>,
     /// The Unix timestamp (in seconds) of when the completion was created.
     pub created: u32,
@@ -1521,7 +1521,7 @@ pub struct ChatChoice {
 #[derive(Debug, Deserialize, Clone, PartialEq, Serialize)]
 pub struct CreateChatCompletionResponse {
     /// A unique identifier for the chat completion.
-    pub id: String,
+    pub id: Option<String>,
     /// A list of chat completion choices. Can be more than one if `n` is greater than 1.
     pub choices: Vec<ChatChoice>,
     /// The Unix timestamp (in seconds) of when the chat completion was created.
