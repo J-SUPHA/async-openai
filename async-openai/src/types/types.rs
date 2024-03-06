@@ -191,20 +191,36 @@ pub struct Choice {
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 pub struct CompletionUsage {
     /// Number of tokens in the prompt.
-    pub prompt_tokens: u32,
+    pub prompt_tokens: Option<u32>,
     /// Number of tokens in the generated completion.
-    pub completion_tokens: u32,
+    pub completion_tokens: Option<u32>,
     /// Total number of tokens used in the request (prompt + completion).
-    pub total_tokens: u32,
+    pub total_tokens: Option<u32>,
+
+    pub input_tokens: Option<u32>, // anthropic 
+
+    pub output_tokens: Option<u32>, // anthropic
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+pub struct AnthropicResp {
+    pub r#type : Option<String>, // anthropic
+    pub text : Option<String>, // anthropic
 }
 
 #[derive(Debug, Deserialize, Clone, PartialEq, Serialize)]
 pub struct CreateCompletionResponse {
     /// A unique identifier for the completion.
+    /// 
     pub id: Option<String>,
-    pub choices: Vec<Choice>,
+
+    pub r#type : Option<String>, // anthropic
+    pub role : Option<String>, // anthropic
+    pub content : Option<Vec<AnthropicResp>>, // anthropic
+
+    pub choices: Option<Vec<Choice>>,
     /// The Unix timestamp (in seconds) of when the completion was created.
-    pub created: u32,
+    pub created: Option<u32>,
 
     /// The model used for completion.
     pub model: String,
@@ -215,7 +231,7 @@ pub struct CreateCompletionResponse {
     pub system_fingerprint: Option<String>,
 
     /// The object type, which is always "text_completion"
-    pub object: String,
+    pub object: Option<String>,
     pub usage: Option<CompletionUsage>,
 }
 
@@ -1266,7 +1282,7 @@ pub enum ChatCompletionRequestMessage {
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
 pub struct ChatCompletionMessageToolCall {
     /// The ID of the tool call.
-    pub id: String,
+    pub id: Option<String>,
     /// The type of the tool. Currently, only `function` is supported.
     pub r#type: ChatCompletionToolType,
     /// The function that the model called.
@@ -1523,18 +1539,22 @@ pub struct CreateChatCompletionResponse {
     /// A unique identifier for the chat completion.
     pub id: Option<String>,
     /// A list of chat completion choices. Can be more than one if `n` is greater than 1.
-    pub choices: Vec<ChatChoice>,
+    pub choices: Option<Vec<ChatChoice>>,
     /// The Unix timestamp (in seconds) of when the chat completion was created.
-    pub created: u32,
+    pub created: Option<u32>,
     /// The model used for the chat completion.
-    pub model: String,
+    pub model: Option<String>,
+
+    pub r#type : Option<String>, // anthropic
+    pub role : Option<String>, // anthropic
+    pub content : Option<Vec<AnthropicResp>>, // anthropic
     /// This fingerprint represents the backend configuration that the model runs with.
     ///
     /// Can be used in conjunction with the `seed` request parameter to understand when backend changes have been made that might impact determinism.
     pub system_fingerprint: Option<String>,
 
     /// The object type, which is always `chat.completion`.
-    pub object: String,
+    pub object: Option<String>,
     pub usage: Option<CompletionUsage>,
 }
 
@@ -1591,17 +1611,22 @@ pub struct CreateChatCompletionStreamResponse {
     /// A unique identifier for the chat completion. Each chunk has the same ID.
     pub id: Option<String>,
     /// A list of chat completion choices. Can be more than one if `n` is greater than 1.
-    pub choices: Vec<ChatCompletionResponseStreamMessage>,
+    pub choices: Option<Vec<ChatCompletionResponseStreamMessage>>,
+
+
+    pub r#type : Option<String>, // anthropic
+    pub role : Option<String>, // anthropic
+    pub content : Option<Vec<AnthropicResp>>, // anthropic
 
     /// The Unix timestamp (in seconds) of when the chat completion was created. Each chunk has the same timestamp.
-    pub created: u32,
+    pub created: Option<u32>,
     /// The model to generate the completion.
-    pub model: String,
+    pub model: Option<String>,
     /// This fingerprint represents the backend configuration that the model runs with.
     /// Can be used in conjunction with the `seed` request parameter to understand when backend changes have been made that might impact determinism.
     pub system_fingerprint: Option<String>,
     /// The object type, which is always `chat.completion.chunk`.
-    pub object: String,
+    pub object: Option<String>,
 }
 
 #[derive(Debug, Default, Clone, PartialEq)]

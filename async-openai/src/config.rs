@@ -15,6 +15,9 @@ pub const OPENAI_BETA_HEADER: &str = "OpenAI-Beta";
 /// or Azure OpenAI service
 pub trait Config: Clone {
     fn headers(&self) -> HeaderMap;
+
+    fn anthropic_headers(&self) -> HeaderMap;
+
     fn url(&self, path: &str) -> String;
     fn query(&self) -> Vec<(&str, &str)>;
 
@@ -97,6 +100,25 @@ impl Config for OpenAIConfig {
 
         headers
     }
+    fn anthropic_headers(&self) -> HeaderMap {
+
+        let mut headers = HeaderMap::new();
+
+        headers.insert(
+            "x-api-key",
+            format!("{}", self.api_key.expose_secret())
+            .as_str()
+            .parse()
+            .unwrap(),
+            );
+        
+            
+            headers.insert(
+            "anthropic-version",
+            "2023-06-01".parse().unwrap(),
+            );
+            headers
+    }
 
     fn url(&self, path: &str) -> String {
         format!("{}{}", self.api_base, path)
@@ -168,6 +190,17 @@ impl AzureConfig {
 
 impl Config for AzureConfig {
     fn headers(&self) -> HeaderMap {
+        let mut headers = HeaderMap::new();
+
+        headers.insert(
+            "api-key",
+            self.api_key.expose_secret().as_str().parse().unwrap(),
+        );
+
+        headers
+    }
+
+    fn anthropic_headers(&self) -> HeaderMap {
         let mut headers = HeaderMap::new();
 
         headers.insert(

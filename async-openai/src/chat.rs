@@ -22,14 +22,14 @@ impl<'c, C: Config> Chat<'c, C> {
     /// Creates a model response for the given chat conversation.
     pub async fn create(
         &self,
-        request: CreateChatCompletionRequest,
+        request: CreateChatCompletionRequest
     ) -> Result<CreateChatCompletionResponse, OpenAIError> {
         if request.stream.is_some() && request.stream.unwrap() {
             return Err(OpenAIError::InvalidArgument(
                 "When stream is true, use Chat::create_stream".into(),
             ));
         }
-        self.client.post("/chat/completions", request).await
+        self.client.post("", request).await
     }
 
     /// Creates a completion for the chat message
@@ -40,6 +40,7 @@ impl<'c, C: Config> Chat<'c, C> {
     pub async fn create_stream(
         &self,
         mut request: CreateChatCompletionRequest,
+        anthropic : bool,
     ) -> Result<ChatCompletionResponseStream, OpenAIError> {
         if request.stream.is_some() && !request.stream.unwrap() {
             return Err(OpenAIError::InvalidArgument(
@@ -49,6 +50,6 @@ impl<'c, C: Config> Chat<'c, C> {
 
         request.stream = Some(true);
 
-        Ok(self.client.post_stream("/chat/completions", request).await)
+        Ok(self.client.post_stream("", request, anthropic).await)
     }
 }

@@ -322,21 +322,36 @@ impl<C: Config> Client<C> {
         &self,
         path: &str,
         request: I,
+        anthropic : bool,
     ) -> Pin<Box<dyn Stream<Item = Result<O, OpenAIError>> + Send>>
     where
         I: Serialize,
         O: DeserializeOwned + std::marker::Send + 'static,
     {
-        let event_source = self
-            .http_client
-            .post(self.config.url(path))
-            .query(&self.config.query())
-            .headers(self.config.headers())
-            .json(&request)
-            .eventsource()
-            .unwrap();
+        if anthropic {
+            let event_source = self
+                .http_client
+                .post(self.config.url(path))
+                .query(&self.config.query())
+                .headers(self.config.anthropic_headers())
+                .json(&request)
+                .eventsource()
+                .unwrap();
 
-        stream(event_source).await
+             stream(event_source).await
+        } else {
+            let event_source = self
+                .http_client
+                .post(self.config.url(path))
+                .query(&self.config.query())
+                .headers(self.config.headers())
+                .json(&request)
+                .eventsource()
+                .unwrap();
+
+            stream(event_source).await
+        }
+        
     }
 
     /// Make HTTP GET request to receive SSE

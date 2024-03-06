@@ -43,6 +43,7 @@ impl<'c, C: Config> Completions<'c, C> {
     pub async fn create_stream(
         &self,
         mut request: CreateCompletionRequest,
+        anthropic: bool,
     ) -> Result<CompletionResponseStream, OpenAIError> {
         if request.stream.is_some() && !request.stream.unwrap() {
             return Err(OpenAIError::InvalidArgument(
@@ -52,6 +53,6 @@ impl<'c, C: Config> Completions<'c, C> {
 
         request.stream = Some(true);
 
-        Ok(self.client.post_stream("/completions", request).await)
+        Ok(self.client.post_stream("/completions", request, anthropic).await)
     }
 }
