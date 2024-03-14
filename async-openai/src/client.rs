@@ -395,38 +395,29 @@ where
             match ev {
                 Err(e) => {
                     if let Err(_e) = tx.send(Err(OpenAIError::StreamError(e.to_string()))) {
-                        // rx dropped
-                        // println!("The error is in the first catch");
+                        
                         break;
                     }
                 }
                 Ok(event) => match event {
                     Event::Message(message) => {
 
+
+                        
                         if message.data == "[DONE]" {
-                            println!("the massage.data is {:?}", message.data);
                             break;
                         }
-                        // println!("This is message.data {:?}", message.data); // this is where we we can get the tokenization data
-                        // if let Some(stop) = message.data. {
-                        //     if stop=="message_stop" {
-                        //         break;
-                        //     }
-                        // }
+                        
                         let v: serde_json::Result<serde_json::Value> = serde_json::from_str(&message.data);
-                        println!("The value is {:?}", v);
-
-                        // Check if the deserialization was successful and if the type field exists and is "message_stop".
+                       
                         if let Ok(value) = v {
                             if let Some(serde_json::Value::String(type_value)) = value.get("type") {
-                                println!("The type value is {:?}", type_value);
+
                                 if type_value == "message_stop" {
                                     break;
                                 }
                             }
                         }
-
-
                         let response = match serde_json::from_str::<O>(&message.data) {
                             Err(e) => Err(map_deserialization_error(e, message.data.as_bytes())),
                             Ok(output) => {
@@ -435,7 +426,8 @@ where
                         };
 
                         if let Err(_e) = tx.send(response) {
-                            // rx dropped
+                            
+                           
                             break;
                         }
                     }
