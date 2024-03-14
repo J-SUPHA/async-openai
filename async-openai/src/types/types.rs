@@ -84,7 +84,7 @@ pub struct CreateCompletionRequest {
     ///
     /// The token count of your prompt plus `max_tokens` cannot exceed the model's context length. Most models have a context length of 2048 tokens (except for the newest models, which support 4096).
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub max_tokens: Option<u16>,
+    pub max_tokens: Option<u32>,
 
     /// What sampling temperature to use, between 0 and 2. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic.
     ///
@@ -1441,7 +1441,7 @@ pub struct CreateChatCompletionRequest {
     ///
     /// The total length of input tokens and generated tokens is limited by the model's context length. [Example Python code](https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb) for counting tokens.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub max_tokens: Option<u16>,
+    pub max_tokens: Option<u32>,
 
     /// How many chat completion choices to generate for each input message.
     #[serde(skip_serializing_if = "Option::is_none")]
