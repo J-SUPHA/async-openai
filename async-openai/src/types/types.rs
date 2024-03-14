@@ -203,9 +203,13 @@ pub struct CompletionUsage {
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
-pub struct AnthropicResp {
+pub struct AnthropicResponse {
     pub r#type : Option<String>, // anthropic
     pub text : Option<String>, // anthropic
+    pub stop_reason : Option<String>,
+    pub stop_sequence : Option<String>,
+    pub usage : Option<CompletionUsage>,
+
 }
 
 #[derive(Debug, Deserialize, Clone, PartialEq, Serialize)]
@@ -216,7 +220,7 @@ pub struct CreateCompletionResponse {
 
     pub r#type : Option<String>, // anthropic
     pub role : Option<String>, // anthropic
-    pub content : Option<Vec<AnthropicResp>>, // anthropic
+    pub content : Option<Vec<AnthropicResponse>>, // anthropic
 
     pub choices: Option<Vec<Choice>>,
     /// The Unix timestamp (in seconds) of when the completion was created.
@@ -1413,7 +1417,12 @@ pub struct CreateChatCompletionRequest {
     /// See the [model endpoint compatibility](https://platform.openai.com/docs/models/model-endpoint-compatibility) table for details on which models work with the Chat API.
     pub model: String,
 
-    /// Number between -2.0 and 2.0. Positive values penalize new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim.
+    // This is only used in the case of Anthropic - should be left completely empty in all other cases.
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub system: Option<String>,
+
+
     ///
     /// [See more information about frequency and presence penalties.](https://platform.openai.com/docs/api-reference/parameter-details)
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1547,7 +1556,7 @@ pub struct CreateChatCompletionResponse {
 
     pub r#type : Option<String>, // anthropic
     pub role : Option<String>, // anthropic
-    pub content : Option<Vec<AnthropicResp>>, // anthropic
+    pub content : Option<Vec<AnthropicResponse>>, // anthropic
     /// This fingerprint represents the backend configuration that the model runs with.
     ///
     /// Can be used in conjunction with the `seed` request parameter to understand when backend changes have been made that might impact determinism.
@@ -1605,6 +1614,14 @@ pub struct ChatCompletionResponseStreamMessage {
     pub finish_reason: Option<FinishReason>,
 }
 
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+pub struct ContentBlock {
+    /// The index of the choice in the list of choices.
+    pub r#type: Option<String>,
+    pub text: Option<String>,
+}
+
 #[derive(Debug, Deserialize, Clone, PartialEq, Serialize)]
 /// Represents a streamed chunk of a chat completion response returned by model, based on the provided input.
 pub struct CreateChatCompletionStreamResponse {
@@ -1613,10 +1630,13 @@ pub struct CreateChatCompletionStreamResponse {
     /// A list of chat completion choices. Can be more than one if `n` is greater than 1.
     pub choices: Option<Vec<ChatCompletionResponseStreamMessage>>,
 
+    pub index: Option<u32>, // anthropic
+
 
     pub r#type : Option<String>, // anthropic
-    pub role : Option<String>, // anthropic
-    pub content : Option<Vec<AnthropicResp>>, // anthropic
+    pub content_block : Option<ContentBlock>, // anthropic
+    pub delta : Option<AnthropicResponse>, // anthropic
+    pub message: Option<AnthropicStartMessage>, // anthropic
 
     /// The Unix timestamp (in seconds) of when the chat completion was created. Each chunk has the same timestamp.
     pub created: Option<u32>,
@@ -1627,6 +1647,18 @@ pub struct CreateChatCompletionStreamResponse {
     pub system_fingerprint: Option<String>,
     /// The object type, which is always `chat.completion.chunk`.
     pub object: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Clone, PartialEq, Serialize)]
+pub struct AnthropicStartMessage {
+    pub id : Option<String>, // anthropic
+    pub r#type : Option<String>, // anthropic
+    pub role : Option<String>, // anthropic
+    //pub content : Option<AnthropicResponse>, // anthropic
+    pub model : Option<String>, // anthropic
+    pub stop_reason : Option<String>, // anthropic
+    pub stop_sequence : Option<String>, // anthropic
+    pub usage : Option<CompletionUsage>, // anthropic
 }
 
 #[derive(Debug, Default, Clone, PartialEq)]

@@ -328,6 +328,7 @@ impl<C: Config> Client<C> {
         I: Serialize,
         O: DeserializeOwned + std::marker::Send + 'static,
     {
+
         if anthropic {
             let event_source = self
                 .http_client
@@ -337,6 +338,8 @@ impl<C: Config> Client<C> {
                 .json(&request)
                 .eventsource()
                 .unwrap();
+            //println!("anthropic headers {:?}", self.config.anthropic_headers());
+            //println!("The url is {:?}", self.config.url(path));
 
              stream(event_source).await
         } else {
@@ -393,47 +396,44 @@ where
                 Err(e) => {
                     if let Err(_e) = tx.send(Err(OpenAIError::StreamError(e.to_string()))) {
                         // rx dropped
+                        // println!("The error is in the first catch");
                         break;
                     }
                 }
                 Ok(event) => match event {
                     Event::Message(message) => {
-                    
-                        
-                        // Clone the message data for manipulation
-                        let mut data_clone = message.data.clone();
 
-                
-                        // Check if the 'model' field exists
-                        let mut data_json: serde_json::Value = serde_json::from_str(&data_clone).unwrap_or_else(|_| serde_json::Value::Object(serde_json::Map::new()));
-
-                
-                        if data_json.get("model").is_none() {
-                            // Insert 'model' field with a default value if it doesn't exist
-                            data_json.as_object_mut().unwrap().insert("model".to_string(), serde_json::Value::String("default-model".to_string()));
-                            // Update data_clone with the modified data
-                            data_clone = serde_json::to_string(&data_json).unwrap();
-                        }
-                        if data_json.get("id").is_none() {
-                            // Insert 'model' field with a default value if it doesn't exist
-                            data_json.as_object_mut().unwrap().insert("id".to_string(), serde_json::Value::String(chrono::offset::Local::now().to_string()));
-                            // Update data_clone with the modified data
-                            data_clone = serde_json::to_string(&data_json).unwrap();
-                        }
-                        // Now work with data_clone which includes the 'model' field
-                
-                        if data_clone == "[DONE]" {
+                        if message.data == "[DONE]" {
+                            println!("the massage.data is {:?}", message.data);
                             break;
                         }
-                
-                        let response = match serde_json::from_str::<O>(&data_clone) {
-                            Err(e) => {
-                                println!("error {:?}", e);
-                                Err(map_deserialization_error(e, &data_clone.as_bytes()))
+                        // println!("This is message.data {:?}", message.data); // this is where we we can get the tokenization data
+                        // if let Some(stop) = message.data. {
+                        //     if stop=="message_stop" {
+                        //         break;
+                        //     }
+                        // }
+                        let v: serde_json::Result<serde_json::Value> = serde_json::from_str(&message.data);
+                        println!("The value is {:?}", v);
+
+                        // Check if the deserialization was successful and if the type field exists and is "message_stop".
+                        if let Ok(value) = v {
+                            if let Some(serde_json::Value::String(type_value)) = value.get("type") {
+                                println!("The type value is {:?}", type_value);
+                                if type_value == "message_stop" {
+                                    break;
+                                }
+                            }
+                        }
+
+
+                        let response = match serde_json::from_str::<O>(&message.data) {
+                            Err(e) => Err(map_deserialization_error(e, message.data.as_bytes())),
+                            Ok(output) => {
+                                Ok(output)
                             },
-                            Ok(output) => Ok(output),
                         };
-                
+
                         if let Err(_e) = tx.send(response) {
                             // rx dropped
                             break;
